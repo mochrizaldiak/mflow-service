@@ -43,7 +43,7 @@ func (s *TransactionService) GetByUser(userID uint) ([]models.Transaction, error
 	var txs []models.Transaction
 	err := s.DB.
 		Preload("Budget", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "deskripsi")
+			return db.Select("id", "nama")
 		}).
 		Where("user_id = ?", userID).
 		Order("tanggal desc").
@@ -55,7 +55,7 @@ func (s *TransactionService) GetByID(id uint, userID uint) (models.Transaction, 
 	var tx models.Transaction
 	err := s.DB.
 		Preload("Budget", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "deskripsi")
+			return db.Select("id", "nama")
 		}).
 		Where("id = ? AND user_id = ?", id, userID).
 		First(&tx).Error
