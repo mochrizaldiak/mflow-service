@@ -5,7 +5,7 @@ import "time"
 type Budget struct {
 	ID            uint      `gorm:"primaryKey" json:"id"`
 	UserID        uint      `json:"user_id"`
-	Nama          string    `json:"nama"` // ✅ nama anggaran
+	Nama          string    `json:"nama"`
 	Pemasukan     int       `json:"pemasukan"`
 	Pengeluaran   int       `json:"pengeluaran"`
 	JenisAnggaran string    `json:"jenis_anggaran"`
