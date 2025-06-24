@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"mflow/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -61,12 +62,47 @@ func (s *TransactionService) GetByUser(userID uint) ([]models.Transaction, error
 	var txs []models.Transaction
 	err := s.DB.
 		Preload("Budget", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id", "nama", "deskripsi")
+			return db.Select("id", "deskripsi", "status", "jenis_periode", "tanggal")
 		}).
 		Where("user_id = ?", userID).
 		Order("tanggal desc").
 		Find(&txs).Error
-	return txs, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+
+	for i := range txs {
+		b := &txs[i].Budget
+
+		if b.Status == "S" {
+			continue
+		}
+
+		var endDate time.Time
+		switch b.JenisPeriode {
+		case "D":
+			endDate = b.Tanggal.AddDate(0, 0, 1)
+		case "W":
+			endDate = b.Tanggal.AddDate(0, 0, 7)
+		case "M":
+			endDate = b.Tanggal.AddDate(0, 1, 0)
+		case "Y":
+			endDate = b.Tanggal.AddDate(1, 0, 0)
+		default:
+			continue
+		}
+
+		if now.After(endDate) {
+			// Ubah status jadi selesai
+			b.Status = "S"
+			s.DB.Model(&models.Budget{}).Where("id = ?", b.ID).Update("status", "S")
+		}
+	}
+
+	return txs, nil
 }
 
 func (s *TransactionService) GetByID(id uint, userID uint) (models.Transaction, error) {
